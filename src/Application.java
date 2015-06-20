@@ -2,12 +2,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.Random;
 
 import dating.model.Customer.*;
+import dating.model.Advertiser;
 import dating.model.AgeRange;
 import dating.model.IncomeRange;
 import dating.model.Message;
 import dating.model.PartnerCriteria;
+import dating.model.Responder;
 import dating.service.Customer;
 
 public class Application {
@@ -22,6 +25,7 @@ public class Application {
 	public static HashMap<String, APP_STATE> actionsMap = new HashMap<String, APP_STATE>();
 
 	public static void main(String[] args) throws IOException {
+		setupCustomers();
 		printInstruction();
 		setupMaps();
 		BufferedReader bufferedReader = new BufferedReader(
@@ -42,7 +46,6 @@ public class Application {
 	public static void printInstruction() throws IOException {
 		System.out.println("Please choose one option below:");
 		switch (state) {
-		case SHOW_CUSTOMERS:
 		case DASHBOARD:
 			if (Customer.customers.size() > 0) {
 				System.out.println("1. Print customers");
@@ -54,9 +57,9 @@ public class Application {
 			}
 			break;
 		default:
+			System.out.println("-1. Dashboard");
 			break;
 		}
-		System.out.println("-1. Dashboard");
 	}
 
 	public static void reset() throws IOException {
@@ -548,4 +551,43 @@ public class Application {
 		System.out.println("----------------------------------------");
 	}
 
+	public static void setupCustomers() {
+		Random randomGenerator = new Random();
+		for (int i = 0; i < 8; i++) {
+			if (randomGenerator.nextInt(2) == 0) {
+				Advertiser customer = Customer.createAdvertiser();
+				customer.username = "Advertiser " + i;
+				customer.password = "advert" + i;
+				customer.gender = randomGenerator.nextInt(2) == 0 ? Gender.FEMALE
+						: Gender.MALE;
+				customer.incomeRange.from = randInt(100, 10000);
+				customer.incomeRange.to = randInt(
+						(int) customer.incomeRange.from, 10000);
+				customer.advertText = "Advertiser " + 1 + ": some text advert.";
+				customer.partnerCriteria.gender = randomGenerator.nextInt(2) == 0 ? Gender.FEMALE
+						: Gender.MALE;
+				customer.partnerCriteria.ageRange.from = randInt(100, 10000);
+				customer.partnerCriteria.ageRange.to = randInt(
+						(int) customer.partnerCriteria.ageRange.from, 10000);
+				customer.partnerCriteria.incomeRange.from = randInt(100, 10000);
+				customer.partnerCriteria.incomeRange.to = randInt(
+						(int) customer.partnerCriteria.incomeRange.from, 10000);
+			} else {
+				Responder customer = Customer.createResponder();
+				customer.username = "Responder " + i;
+				customer.password = "resp" + i;
+				customer.gender = randomGenerator.nextInt(2) == 0 ? Gender.FEMALE
+						: Gender.MALE;
+				customer.incomeRange.from = randInt(100, 10000);
+				customer.incomeRange.to = randInt(
+						(int) customer.incomeRange.from, 10000);
+			}
+		}
+	}
+
+	public static int randInt(int min, int max) {
+		Random rand = new Random();
+		int randomNum = rand.nextInt((max - min) + 1) + min;
+		return randomNum;
+	}
 }

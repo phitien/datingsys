@@ -30,7 +30,7 @@ public abstract class Customer implements Model {
 	public Gender gender;
 	protected Type type;
 	public float age = -1;
-	public IncomeRange incomeRange;
+	public IncomeRange incomeRange = new IncomeRange();
 
 	public Type getType() {
 		return type;
