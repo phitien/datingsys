@@ -520,7 +520,6 @@ public class Application {
 		System.out.println("Income		: "
 				+ advertiser.partnerCriteria.incomeRange.from + " -> "
 				+ advertiser.partnerCriteria.incomeRange.to);
-		System.out.println("----------------------------------------");
 	}
 
 	public static void printAdvertiserMessages(
@@ -548,7 +547,6 @@ public class Application {
 		System.out.println("Age		: " + responder.age);
 		System.out.println("Income		: " + responder.incomeRange.from + " -> "
 				+ responder.incomeRange.to);
-		System.out.println("----------------------------------------");
 	}
 
 	public static void setupCustomers() {
@@ -566,9 +564,9 @@ public class Application {
 				customer.advertText = "Advertiser " + 1 + ": some text advert.";
 				customer.partnerCriteria.gender = randomGenerator.nextInt(2) == 0 ? Gender.FEMALE
 						: Gender.MALE;
-				customer.partnerCriteria.ageRange.from = randInt(100, 10000);
+				customer.partnerCriteria.ageRange.from = randInt(18, 60);
 				customer.partnerCriteria.ageRange.to = randInt(
-						(int) customer.partnerCriteria.ageRange.from, 10000);
+						(int) customer.partnerCriteria.ageRange.from, 60);
 				customer.partnerCriteria.incomeRange.from = randInt(100, 10000);
 				customer.partnerCriteria.incomeRange.to = randInt(
 						(int) customer.partnerCriteria.incomeRange.from, 10000);
