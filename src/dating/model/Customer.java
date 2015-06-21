@@ -17,7 +17,7 @@ public abstract class Customer implements Model {
 	/**
 	 * Type of customer (advertiser or responder)
 	 * 
-	 * @author sgp0458
+	 * @author Jerome
 	 *
 	 */
 	public enum Type {
@@ -27,7 +27,7 @@ public abstract class Customer implements Model {
 	/**
 	 * Gender enum
 	 * 
-	 * @author sgp0458
+	 * @author Jerome
 	 *
 	 */
 	public enum Gender {
