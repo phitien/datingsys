@@ -16,8 +16,8 @@ public class Advertiser extends Customer {
 	/**
 	 * Constructor
 	 */
-	public Advertiser() {
-		super();
+	public Advertiser(String username) {
+		super(username);
 		this.type = Type.ADVERTISER;
 	}
 

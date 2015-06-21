@@ -2,8 +2,8 @@ package dating.model;
 
 public class Responder extends Customer {
 
-	public Responder() {
-		super();
+	public Responder(String username) {
+		super(username);
 		this.type = Type.RESPONDER;
 	}
 
