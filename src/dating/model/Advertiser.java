@@ -3,9 +3,8 @@ package dating.model;
 import java.util.ArrayList;
 
 /**
- * Purpose of this class
  * 
- * @author phitien
+ * @author Jerome
  *
  */
 public class Advertiser extends Customer {

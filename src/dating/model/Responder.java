@@ -8,9 +8,8 @@ public class Responder extends Customer {
 	}
 
 	public boolean sendMessage(Advertiser advertiser, String text) {
-		Message message = new Message();
+		Message message = new Message(this);
 		message.text = text;
-		message.owner = this;
 		return dating.service.Customer.sendMessage(advertiser, message);
 	}
 }

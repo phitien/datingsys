@@ -164,7 +164,7 @@ public class Application {
 										break;
 									}
 									if (input.equalsIgnoreCase("5")) {
-										// TODO send message to an advertiser
+										sendMessage(bufferedReader);
 									}
 								}
 							}
@@ -184,6 +184,38 @@ public class Application {
 	}
 
 	/**
+	 * Send a message of the logged responder to an advertiser
+	 * 
+	 * @param bufferedReader
+	 * @throws IOException
+	 */
+	private static void sendMessage(BufferedReader bufferedReader)
+			throws IOException {
+		if (currentCustomer instanceof Responder) {
+			while (true) {
+				System.out
+						.println("Please enter the username of the advertiser you want to send message to:");
+				String input = readParam(bufferedReader);
+				if (input.equalsIgnoreCase("-1")) {
+					reset();
+					break;
+				}
+				Advertiser advertiser = (Advertiser) Customer
+						.getCustomer(input);
+				if (advertiser != null) {
+					System.out.println("Please enter the message:");
+					Message message = new Message(currentCustomer);
+					message.text = readParam(bufferedReader);
+					Customer.sendMessage(advertiser, message);
+					System.out.println("The message has been sent to the advertiser.");
+				} else {
+					System.out.println("Advertiser does not exist");
+				}
+			}
+		}
+	}
+
+	/**
 	 * Create Customer function: user need to select which type of customer
 	 * (advertiser or responder) to be created
 	 * 
@@ -194,7 +226,7 @@ public class Application {
 			throws IOException {
 		System.out.println("Which customer you want to create:");
 		System.out.println("1. Advertiser");
-		System.out.println("2. Customer");
+		System.out.println("2. Responder");
 		while (true) {
 			try {
 				String input = readParam(bufferedReader);
