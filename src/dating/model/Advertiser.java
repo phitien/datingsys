@@ -3,6 +3,7 @@ package dating.model;
 import java.util.ArrayList;
 
 /**
+ * Advertiser
  * 
  * @author Jerome
  *

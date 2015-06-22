@@ -2,6 +2,12 @@ package dating.model;
 
 import dating.util.Model;
 
+/**
+ * Abstract class Customer
+ * 
+ * @author Jerome
+ *
+ */
 public abstract class Customer implements Model {
 
 	/**

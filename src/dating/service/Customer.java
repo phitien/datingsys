@@ -91,7 +91,7 @@ public class Customer {
 		return Customer.customers.remove(customer);
 	}
 
-	public static boolean sendMessage(Advertiser advertiser, Message message) {
+	public static boolean receiveMessage(Advertiser advertiser, Message message) {
 		if (advertiser != null) {
 			return advertiser.addMessage(message);
 		}

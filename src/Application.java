@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -13,172 +14,272 @@ import dating.model.PartnerCriteria;
 import dating.model.Responder;
 import dating.service.Customer;
 
+/**
+ * Main console application
+ * 
+ * @author Jerome
+ *
+ */
 public class Application {
 
+	/**
+	 * Enum application states
+	 * 
+	 * @author Jerome
+	 *
+	 */
 	public enum APP_STATE {
-		DASHBOARD, SHOW_CUSTOMERS, //
-		ADDING_CUSTOMER, REMOVING_CUSTOMER, LOGIN, SENDING_MESSAGE //
+		DEFAULT, PRINT_CUSTOMERS, //
+		ADD_CUSTOMER, REMOVE_CUSTOMER, LOGIN, SEND_MESSAGE //
 	}
 
-	public static APP_STATE state = APP_STATE.DASHBOARD;
-	public static HashMap<String, APP_STATE> actionsMap = new HashMap<String, APP_STATE>();
+	/**
+	 * Application state
+	 */
+	public static APP_STATE state = APP_STATE.DEFAULT;
+
+	/**
+	 * App state -> Value map
+	 */
+	public static HashMap<APP_STATE, String> stateValueMap = new HashMap<APP_STATE, String>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		{
+			put(APP_STATE.DEFAULT, "-1");
+			put(APP_STATE.PRINT_CUSTOMERS, "1");
+			put(APP_STATE.ADD_CUSTOMER, "2");
+			put(APP_STATE.REMOVE_CUSTOMER, "3");
+			put(APP_STATE.LOGIN, "4");
+			put(APP_STATE.SEND_MESSAGE, "5");
+		}
+	};
+
+	/**
+	 * Get app state from a string value
+	 * 
+	 * @param value
+	 * @return
+	 */
+	public static APP_STATE getStateByValue(String value) {
+		for (APP_STATE state : stateValueMap.keySet()) {
+			if (stateValueMap.get(state).equals(value)) {
+				return state;
+			}
+		}
+		return APP_STATE.DEFAULT;
+	}
+
+	/**
+	 * App state -> instruction map
+	 */
+	public static HashMap<APP_STATE, String> stateInstructionMap = new HashMap<APP_STATE, String>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		{
+			put(APP_STATE.DEFAULT,
+					"Enter " + stateValueMap.get(APP_STATE.DEFAULT)
+							+ " to open Dashboard");
+			put(APP_STATE.PRINT_CUSTOMERS,
+					"Enter " + stateValueMap.get(APP_STATE.PRINT_CUSTOMERS)
+							+ " to print list of customers");
+			put(APP_STATE.ADD_CUSTOMER,
+					"Enter " + stateValueMap.get(APP_STATE.ADD_CUSTOMER)
+							+ " to add a customer");
+			put(APP_STATE.REMOVE_CUSTOMER,
+					"Enter " + stateValueMap.get(APP_STATE.REMOVE_CUSTOMER)
+							+ " to remove a customer");
+			put(APP_STATE.LOGIN, "Enter " + stateValueMap.get(APP_STATE.LOGIN)
+					+ " to login");
+			put(APP_STATE.SEND_MESSAGE,
+					"Enter " + stateValueMap.get(APP_STATE.SEND_MESSAGE)
+							+ " to send a message to an advertiser.");
+		}
+	};
+
+	/**
+	 * Logged customer
+	 */
 	public static dating.model.Customer currentCustomer;
 
+	/**
+	 * Main function
+	 * 
+	 * @param args
+	 * @throws IOException
+	 */
 	public static void main(String[] args) throws IOException {
 		setupCustomers();
-		printInstruction();
-		setupMaps();
-		BufferedReader bufferedReader = new BufferedReader(
-				new InputStreamReader(System.in));
-		while (true) {
-			process(bufferedReader);
-		}
+		process();
 	}
 
-	public static void setupMaps() {
-		actionsMap.put("-1", APP_STATE.DASHBOARD);
-		actionsMap.put("1", APP_STATE.SHOW_CUSTOMERS);
-		actionsMap.put("2", APP_STATE.ADDING_CUSTOMER);
-		actionsMap.put("3", APP_STATE.REMOVING_CUSTOMER);
-		actionsMap.put("4", APP_STATE.LOGIN);
-		actionsMap.put("5", APP_STATE.SENDING_MESSAGE);
-	}
-
+	/**
+	 * Print application instructions
+	 * 
+	 * @throws IOException
+	 */
 	public static void printInstruction() throws IOException {
-		System.out.println("Please choose one option below:");
 		switch (state) {
-		case DASHBOARD:
+		case DEFAULT:
 			if (Customer.customers.size() > 0) {
-				System.out.println("1. Print list of customers");
+				System.out.println(stateInstructionMap
+						.get(APP_STATE.PRINT_CUSTOMERS));
 			}
-			System.out.println("2. Add a customer");
+			System.out.println(stateInstructionMap.get(APP_STATE.ADD_CUSTOMER));
 			if (Customer.customers.size() > 0) {
-				System.out.println("3. Remove a customer");
-				System.out.println("4. Login");
+				System.out.println(stateInstructionMap
+						.get(APP_STATE.REMOVE_CUSTOMER));
+				System.out.println(stateInstructionMap.get(APP_STATE.LOGIN));
 			}
 			break;
 		default:
-			System.out.println("-1. Dashboard");
+			// System.out.println(stateInstructionMap.get(APP_STATE.DEFAULT));
 			break;
 		}
 	}
 
+	/**
+	 * Reset: logout, set app state to DEFAULT, print default instruction
+	 * 
+	 * @throws IOException
+	 */
 	public static void reset() throws IOException {
 		currentCustomer = null;
-		setState("0");
-		printInstruction();
+		setState(stateValueMap.get(APP_STATE.DEFAULT));
 	}
 
+	/**
+	 * Get one line from console
+	 * 
+	 * @param bufferedReader
+	 * @return
+	 * @throws IOException
+	 */
 	private static String readParam(BufferedReader bufferedReader)
 			throws IOException {
 		return bufferedReader.readLine().trim();
 	}
 
-	public static void process(BufferedReader bufferedReader)
-			throws IOException {
-		String input = readParam(bufferedReader);
-		setState(input);
+	/**
+	 * Process app bases on the input from console
+	 * 
+	 * @throws IOException
+	 */
+	public static void process() throws IOException {
 		printInstruction();
-		switch (state) {
-		case SHOW_CUSTOMERS:
-			printCustomers(bufferedReader);
-			break;
-		case ADDING_CUSTOMER:
-			createCustomer(bufferedReader);
-			break;
-		case REMOVING_CUSTOMER:
-			removeCustomer(bufferedReader);
-			break;
-		case LOGIN:
-			login(bufferedReader);
-			break;
-		case DASHBOARD:
-		default:
-			break;
-		}
-	}
-
-	private static void removeCustomer(BufferedReader bufferedReader) {
-		if (Customer.customers.size() > 0) {
-			while (true) {
-				try {
-					System.out
-							.println("Please enter customer index you want to delete:");
-					String input = readParam(bufferedReader);
-					if (input.equalsIgnoreCase("-1")) {
-						reset();
-						break;
-					}
-					int idx = Integer.parseInt(input);
-					if (idx >= 0 && idx < Customer.customers.size()) {
-						Customer.customers.remove(idx);
-						reset();
-						break;
-					} else {
-						System.out.println("There is no customer of the index "
-								+ idx);
-						reset();
-						break;
-					}
-				} catch (Exception e) {
-				}
+		BufferedReader bufferedReader = new BufferedReader(
+				new InputStreamReader(System.in));
+		while (true) {
+			setState(readParam(bufferedReader));
+			switch (state) {
+			case PRINT_CUSTOMERS:
+				printCustomers(bufferedReader);
+				break;
+			case ADD_CUSTOMER:
+				createCustomer(bufferedReader);
+				break;
+			case REMOVE_CUSTOMER:
+				removeCustomer(bufferedReader);
+				break;
+			case LOGIN:
+				login(bufferedReader);
+				break;
+			default:
+				break;
 			}
 		}
 	}
 
-	private static void login(BufferedReader bufferedReader) {
+	/**
+	 * Remove a customer
+	 * 
+	 * @param bufferedReader
+	 * @throws IOException
+	 */
+	public static void removeCustomer(BufferedReader bufferedReader)
+			throws IOException {
 		if (Customer.customers.size() > 0) {
-			while (true) {
-				try {
-					System.out.println("Please enter username:");
-					String username = readParam(bufferedReader);
-					if (username.equalsIgnoreCase("-1")) {
-						reset();
-						break;
-					}
-					if (Customer.hasCustomer(username)) {
-						System.out.println("Please enter password:");
-						String password = readParam(bufferedReader);
-						if (password.equalsIgnoreCase("-1")) {
-							reset();
-							break;
-						}
-						dating.model.Customer customer = Customer.login(
-								username, password);
-						if (customer != null) {
-							currentCustomer = customer;
-							if (currentCustomer instanceof dating.model.Advertiser) {
-								printAdvertiser((dating.model.Advertiser) currentCustomer);
-								printAdvertiserMessages((dating.model.Advertiser) currentCustomer);
-							} else if (currentCustomer instanceof dating.model.Responder) {
-								printResponder((dating.model.Responder) currentCustomer);
-								printMatchingAdvertisersOfResponder((dating.model.Responder) currentCustomer);
-								while (true) {
-									System.out
-											.println("Enter 5 to send message to an advertiser.");
-									System.out
-											.println("Enter -1 to logout(go back).");
-									String input = readParam(bufferedReader);
-									if (input.equalsIgnoreCase("-1")) {
-										reset();
-										break;
-									}
-									if (input.equalsIgnoreCase("5")) {
-										sendMessage(bufferedReader);
-									}
-								}
-							}
-						} else {
-							System.out.println("Password is incorrect.");
-							reset();
-						}
-						break;
-					} else {
-						System.out
-								.println("User does not exist. Enter -1 to go back or re-enter user name again");
-					}
-				} catch (Exception e) {
+			System.out
+					.println("Please enter customer's username want to delete:");
+			System.out.println(stateInstructionMap.get(APP_STATE.DEFAULT));
+			String username = readParam(bufferedReader);
+			if (username.equalsIgnoreCase("-1")) {
+				reset();
+				return;
+			}
+			dating.model.Customer customer = Customer.getCustomer(username);
+			if (customer != null) {
+				Customer.remove(customer);
+				System.out.println("Customer " + username
+						+ " has been removed.");
+			} else {
+				System.out.println("There is no customer " + username);
+			}
+		}
+	}
+
+	/**
+	 * Login
+	 * 
+	 * @param bufferedReader
+	 * @throws IOException
+	 */
+	public static void login(BufferedReader bufferedReader) throws IOException {
+		if (Customer.customers.size() > 0) {
+			System.out.println("Please enter username:");
+			String username = readParam(bufferedReader);
+			if (username.equalsIgnoreCase("-1")) {
+				reset();
+				return;
+			}
+			if (Customer.hasCustomer(username)) {
+				System.out.println("Please enter password:");
+				String password = readParam(bufferedReader);
+				if (password.equalsIgnoreCase("-1")) {
+					reset();
+					return;
 				}
+				dating.model.Customer customer = Customer.login(username,
+						password);
+				if (customer != null) {
+					currentCustomer = customer;
+					if (currentCustomer instanceof dating.model.Advertiser) {
+						printAdvertiser((dating.model.Advertiser) currentCustomer);
+						printAdvertiserMessages((dating.model.Advertiser) currentCustomer);
+					} else if (currentCustomer instanceof dating.model.Responder) {
+						printResponder((dating.model.Responder) currentCustomer);
+						printMatchingAdvertisersOfResponder((dating.model.Responder) currentCustomer);
+						while (true) {
+							System.out
+									.println("\nPlease enter one option below:");
+							System.out.println(stateInstructionMap
+									.get(APP_STATE.SEND_MESSAGE));
+							System.out.println(stateInstructionMap
+									.get(APP_STATE.DEFAULT));
+							String input = readParam(bufferedReader);
+							if (input.equalsIgnoreCase("-1")) {
+								reset();
+								break;
+							}
+							if (input.equalsIgnoreCase("5")) {
+								sendMessage(bufferedReader);
+							}
+						}
+					}
+				} else {
+					System.out.println("Password is incorrect.");
+					reset();
+				}
+				return;
+			} else {
+				System.out
+						.println("User does not exist. Enter -1 to go back or re-enter user name again");
+				return;
 			}
 		}
 	}
@@ -194,20 +295,22 @@ public class Application {
 		if (currentCustomer instanceof Responder) {
 			while (true) {
 				System.out
-						.println("Please enter the username of the advertiser you want to send message to:");
-				String input = readParam(bufferedReader);
-				if (input.equalsIgnoreCase("-1")) {
+						.println("Enter username of the advertiser you want to send message to:");
+				System.out.println(stateInstructionMap.get(APP_STATE.DEFAULT));
+				String username = readParam(bufferedReader);
+				if (username.equalsIgnoreCase("-1")) {
 					reset();
 					break;
 				}
 				Advertiser advertiser = (Advertiser) Customer
-						.getCustomer(input);
+						.getCustomer(username);
 				if (advertiser != null) {
 					System.out.println("Please enter the message:");
 					Message message = new Message(currentCustomer);
 					message.text = readParam(bufferedReader);
-					Customer.sendMessage(advertiser, message);
-					System.out.println("The message has been sent to the advertiser.");
+					Customer.receiveMessage(advertiser, message);
+					System.out
+							.println("The message has been sent to the advertiser.");
 				} else {
 					System.out.println("Advertiser does not exist");
 				}
@@ -224,29 +327,18 @@ public class Application {
 	 */
 	private static void createCustomer(BufferedReader bufferedReader)
 			throws IOException {
-		System.out.println("Which customer you want to create:");
-		System.out.println("1. Advertiser");
-		System.out.println("2. Responder");
-		while (true) {
-			try {
-				String input = readParam(bufferedReader);
-				if (input.equalsIgnoreCase("-1")) {
-					reset();
-					break;
-				}
-				int idx = Integer.parseInt(input);
-				if (idx == 1) {
-					createAdvertiser(bufferedReader);
-					break;
-				} else if (idx == 2) {
-					createResponder(bufferedReader);
-					break;
-				}
-			} catch (Exception e) {
-				System.out.println("Which customer you want to create:");
-				System.out.println("1. Advertiser");
-				System.out.println("2. Customer");
-			}
+		System.out.println("Enter 1 to create an advertiser");
+		System.out.println("Enter 2 to create a responder");
+		System.out.println(stateInstructionMap.get(APP_STATE.DEFAULT));
+		String input = readParam(bufferedReader);
+		if (input.equalsIgnoreCase("-1")) {
+			reset();
+			return;
+		}
+		if (input.equalsIgnoreCase("1")) {
+			createAdvertiser(bufferedReader);
+		} else if (input.equalsIgnoreCase("2")) {
+			createResponder(bufferedReader);
 		}
 	}
 
@@ -530,58 +622,47 @@ public class Application {
 	 * Set the current state of application
 	 * 
 	 * @param newState
+	 * @throws IOException
 	 */
-	public static void setState(String newState) {
-		if (actionsMap.containsKey(newState)) {
-			state = actionsMap.get(newState);
-		} else {
-			state = APP_STATE.DASHBOARD;
-		}
+	public static void setState(String newState) throws IOException {
+		state = getStateByValue(newState);
+		printInstruction();
 	}
 
 	/**
 	 * Print the list of customers
 	 * 
 	 * @param bufferedReader
+	 * @throws IOException
 	 */
-	public static void printCustomers(BufferedReader bufferedReader) {
+	public static void printCustomers(BufferedReader bufferedReader)
+			throws IOException {
 		if (Customer.customers.size() <= 0) {
 			System.out.println("There is no customer.");
 			return;
 		}
-		System.out.println("Please choose one:");
-		System.out.println("1. Print all (advertisers and responders)");
-		System.out.println("2. Print all advertisers");
-		System.out.println("3. Print all responders");
-		while (true) {
-			try {
-				String input = readParam(bufferedReader);
-				if (input.equalsIgnoreCase("-1")) {
-					reset();
-					break;
+		System.out.println("Enter 1 to print all (advertisers and responders)");
+		System.out.println("Enter 2 to print all advertisers");
+		System.out.println("Enter 3 to print all responders");
+		System.out.println(stateInstructionMap.get(APP_STATE.DEFAULT));
+		String input = readParam(bufferedReader);
+		if (input.equalsIgnoreCase("-1")) {
+			reset();
+			return;
+		}
+		for (Object object : Customer.customers) {
+			if (input.equalsIgnoreCase("1")) {
+				if (object instanceof dating.model.Advertiser) {
+					printAdvertiser((dating.model.Advertiser) object);
+				} else if (object instanceof dating.model.Responder) {
+					printResponder((dating.model.Responder) object);
 				}
-				int idx = Integer.parseInt(input);
-				for (Object object : Customer.customers) {
-					if (idx == 1) {
-						if (object instanceof dating.model.Advertiser) {
-							printAdvertiser((dating.model.Advertiser) object);
-						} else if (object instanceof dating.model.Responder) {
-							printResponder((dating.model.Responder) object);
-						}
-					} else if (idx == 2
-							&& object instanceof dating.model.Advertiser) {
-						printAdvertiser((dating.model.Advertiser) object);
-					} else if (idx == 3
-							&& object instanceof dating.model.Responder) {
-						printResponder((dating.model.Responder) object);
-					}
-				}
-				break;
-			} catch (Exception e) {
-				System.out.println("Please choose one:");
-				System.out.println("1. Print all");
-				System.out.println("2. Print advertisers");
-				System.out.println("3. Print responders");
+			} else if (input.equalsIgnoreCase("2")
+					&& object instanceof dating.model.Advertiser) {
+				printAdvertiser((dating.model.Advertiser) object);
+			} else if (input.equalsIgnoreCase("3")
+					&& object instanceof dating.model.Responder) {
+				printResponder((dating.model.Responder) object);
 			}
 		}
 	}
@@ -634,12 +715,16 @@ public class Application {
 	 */
 	public static void printMatchingAdvertisersOfResponder(
 			dating.model.Responder responder) {
-		System.out.println("Matches------------------------------------------");
-		int i = 0;
-		for (Advertiser advertiser : Customer
-				.getMatchingAdvertisersOfResponder(responder)) {
-			printMatchingAdvertiser(i, advertiser);
-			i++;
+		ArrayList<Advertiser> matchingAdvertisers = Customer
+				.getMatchingAdvertisersOfResponder(responder);
+		if (matchingAdvertisers.size() > 0) {
+			System.out
+					.println("Matches------------------------------------------");
+			int i = 0;
+			for (Advertiser advertiser : matchingAdvertisers) {
+				printMatchingAdvertiser(i, advertiser);
+				i++;
+			}
 		}
 	}
 
@@ -649,6 +734,7 @@ public class Application {
 	 * @param advertiser
 	 */
 	public static void printMatchingAdvertiser(int idx, Advertiser advertiser) {
+		System.out.println("-------------------------------------------------");
 		System.out.println("---------------Matching Advertiser---------------");
 		System.out.println("Username	: " + advertiser.getUsername());
 		System.out.println("Gender		: "
@@ -657,8 +743,6 @@ public class Application {
 		System.out.println("Income		: " + advertiser.incomeRange.from + " -> "
 				+ advertiser.incomeRange.to);
 		System.out.println("Text advert	: " + advertiser.advertText);
-		System.out.println("--> Press " + idx
-				+ " to send a message to this advertiser.");
 	}
 
 	/**
@@ -694,33 +778,33 @@ public class Application {
 	 */
 	public static void setupCustomers() {
 		Random randomGenerator = new Random();
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < 6; i++) {
 			if (randomGenerator.nextInt(2) == 0) {
-				Advertiser customer = Customer.createAdvertiser("Advertiser "
+				Advertiser customer = Customer.createAdvertiser("advertiser"
 						+ i);
-				customer.password = "advert" + i;
+				customer.password = "advertiser" + i;
 				customer.gender = randomGenerator.nextInt(2) == 0 ? Gender.FEMALE
 						: Gender.MALE;
-				customer.age = randInt(16, 60);
+				customer.age = randInt(23, 35);
 				customer.incomeRange.from = randInt(100, 10000);
 				customer.incomeRange.to = randInt(
 						(int) customer.incomeRange.from, 10000);
 				customer.advertText = "Advertiser " + 1 + ": some text advert.";
-				customer.partnerCriteria.gender = randomGenerator.nextInt(2) == 0 ? Gender.FEMALE
+				customer.partnerCriteria.gender = customer.gender == Gender.MALE ? Gender.FEMALE
 						: Gender.MALE;
-				customer.partnerCriteria.ageRange.from = randInt(18, 60);
+				customer.partnerCriteria.ageRange.from = randInt(18, 19);
 				customer.partnerCriteria.ageRange.to = randInt(
-						(int) customer.partnerCriteria.ageRange.from, 60);
-				customer.partnerCriteria.incomeRange.from = randInt(100, 10000);
+						(int) customer.partnerCriteria.ageRange.from, 35);
+				customer.partnerCriteria.incomeRange.from = randInt(1000, 2000);
 				customer.partnerCriteria.incomeRange.to = randInt(
 						(int) customer.partnerCriteria.incomeRange.from, 10000);
 			} else {
-				Responder customer = Customer.createResponder("Responder " + i);
-				customer.password = "resp" + i;
+				Responder customer = Customer.createResponder("responder" + i);
+				customer.password = "responder" + i;
 				customer.gender = randomGenerator.nextInt(2) == 0 ? Gender.FEMALE
 						: Gender.MALE;
-				customer.age = randInt(16, 60);
-				customer.incomeRange.from = randInt(100, 10000);
+				customer.age = randInt(18, 25);
+				customer.incomeRange.from = randInt(1000, 2000);
 				customer.incomeRange.to = randInt(
 						(int) customer.incomeRange.from, 10000);
 			}
